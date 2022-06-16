@@ -144,6 +144,7 @@ class QuestionView extends Component {
                 onClick={() => {
                   this.getByCategory(id);
                 }}
+                className='category'
               >
                 {this.state.categories[id]}
                 <img
@@ -158,14 +159,14 @@ class QuestionView extends Component {
         </div>
         <div className='questions-list'>
           <h2>Questions</h2>
-          {this.state.questions.map((q, ind) => (
+          {this.state.questions.map(q => (
             <Question
-              key={q.id}
-              question={q.question}
-              answer={q.answer}
-              category={this.state.categories[q.category]}
-              difficulty={q.difficulty}
-              questionAction={this.questionAction(q.id)}
+            key={q.id}
+            question={q.question}
+            answer={q.answer}
+            category={this.state.categories[q.category]}
+            difficulty={q.difficulty}
+            questionAction={this.questionAction(q.id)}
             />
           ))}
           <div className='pagination-menu'>{this.createPagination()}</div>
