@@ -12,6 +12,7 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -74,7 +75,7 @@ def create_app(test_config=None):
                 'message': 'Questions fetched successfully',
                 'questions': formatted_question[start:end],
                 'questions_count': len(formatted_question),
-                'current_category': '',
+                'current_category': 'Science',
                 'categories': formated_categories
             }
 
@@ -84,7 +85,7 @@ def create_app(test_config=None):
             return jsonify(result)
         except:
             error = True
-            abort(400)
+            abort(404)
 
     
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
@@ -118,47 +119,61 @@ def create_app(test_config=None):
         category = data.get('category')
         difficulty = data.get('difficulty')
 
+        search = data.get('searchTerm')
+
         try:
+            
             if data:
-                if question is None:
+                if search:
+                    results = Question.query.filter(Question.question.ilike('%'+ search +'%')).all()
+
                     return jsonify({
-                        'success': False,
-                        'message': 'Please provide a question'
+                        'success': True,
+                        'questions': [ result.format() for result in results ],
+                        'total_questions': len(results),
+                        'current_category': 'Science'
                     })
-                
-                if answer is None:
+                else:
+                    if question is None:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Please provide a question'
+                        })
+                    
+                    if answer is None:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Please provide an answer'
+                        })
+
+                    if category is None:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Please provide a category'
+                        })
+
+                    if difficulty is None:
+                        return jsonify({
+                            'success': False,
+                            'message': 'Please provide a difficulty level'
+                        })
+
+                    newQuestion = Question(question=question, answer=answer, category=category, difficulty=difficulty)
+
+                    if bool(Question.query.filter_by(question=question).first()):
+                        return jsonify({
+                            'message': 'Question already exist',
+                            'success': False
+                        })
+
+                    newQuestion.insert()
+
                     return jsonify({
-                        'success': False,
-                        'message': 'Please provide an answer'
+                        'success': True,
+                        'message': 'Question added successfully',
+                        'created': newQuestion.id,
+                        'question': newQuestion.format(),
                     })
-
-                if category is None:
-                    return jsonify({
-                        'success': False,
-                        'message': 'Please provide a category'
-                    })
-
-                if difficulty is None:
-                    return jsonify({
-                        'success': False,
-                        'message': 'Please provide a difficulty level'
-                    })
-
-                newQuestion = Question(question=question, answer=answer, category=category, difficulty=difficulty)
-
-                if bool(Question.query.filter_by(question=question).first()):
-                    return jsonify({
-                        'message': 'Question already exist'
-                    })
-
-                newQuestion.insert()
-
-                return jsonify({
-                    'success': True,
-                    'message': 'Question added successfully',
-                    'created': newQuestion.id,
-                    'question': newQuestion.format(),
-                })
         except:
             abort(422)
 
@@ -173,7 +188,7 @@ def create_app(test_config=None):
             'success': True,
             'questions': [ result.format() for result in results ],
             'total_questions': len(results),
-            'current_category': ''
+            'current_category': 'Science'
         })
 
 
@@ -239,7 +254,6 @@ def create_app(test_config=None):
             })
         except:
             abort(404)
-
 
     @app.errorhandler(400)
     def error400(error):

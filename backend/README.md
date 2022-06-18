@@ -71,22 +71,287 @@ One note before you delve into your tasks: for each endpoint, you are expected t
 
 You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
 
-### Documentation Example
+## API endpoints documentation
 
-`GET '/api/v1.0/categories'`
+`GET '/categories'`
 
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- This endpoint queries the database for all the available categories in the application which is formatted as a dictionary where the ids of the categories serve as keys and the category type serve as values.
 - Request Arguments: None
-- Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
+- Returns: An object with the keys; `success`, `message`, `categories`, `category_count`.
+Below is the object it returns.
 
 ```json
 {
-  "1": "Science",
-  "2": "Art",
-  "3": "Geography",
-  "4": "History",
-  "5": "Entertainment",
-  "6": "Sports"
+  "success": "True",
+  "message": "Categories fetched successfully",
+  "categories": {
+      "1": "Science",
+      "2": "Art",
+      "3": "Geography",
+      "4": "History",
+      "5": "Entertainment",
+      "6": "Sports"
+    },
+  "categories_count": 6
+}
+```
+
+- When this request fails, an error report is returned to the user. This is a BAD_REQUEST error (400),
+the error body is returned as 
+
+```json
+{
+  "success": "False",
+  "message": "Bad request, please check your request",
+  "error": 400
+}
+```
+
+`GET '/questions'`
+
+- This endpoint queries the database and returns all the questions available in the database. These questions are paginated by 10 questions per page. In that case, it accepts a query (page=1, where can be any number as long as it doesn't exceed the available pages.) although if the argument is not passed, it returns just the first page.
+- Request Argument: None.
+- Returns: An object with the keys; `success`, `questions`, `questions_count`, `categories`, `curerent_category`, `message`
+
+```json
+{
+  "success": "True",
+  "message": "Questions fetched successfully",
+  "questions": [
+      {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+    {
+      "answer": "Maya Angelou", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 5, 
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }, 
+    {
+      "answer": "Edward Scissorhands", 
+      "category": 5, 
+      "difficulty": 3, 
+      "id": 6, 
+      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    }, 
+    {
+      "answer": "Muhammad Ali", 
+      "category": 4, 
+      "difficulty": 1, 
+      "id": 9, 
+      "question": "What boxer's original name is Cassius Clay?"
+    }, 
+    {
+      "answer": "Brazil", 
+      "category": 6, 
+      "difficulty": 3, 
+      "id": 10, 
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    }
+  ],
+  "questions_count": 20,
+  "current_category": "Science",
+  "categories": {
+      "1": "Science",
+      "2": "Art",
+      "3": "Geography",
+      "4": "History",
+      "5": "Entertainment",
+      "6": "Sports"
+  }
+}
+```
+
+- When this request fails, maybe due to request for an unavailable page, an error report is returned;
+
+```json
+{
+  "success": "False",
+  "message": "Not Found, Item not found",
+  "error": 404
+}
+```
+
+`DELETE '/questions/20'`
+
+- This endpoint deletes a question from the database. It searches for the question and deletes it.
+- Request Argument: question id.
+- Returns: An object with the keys; `success`, `message`
+
+```json
+{
+  "success": "True",
+  "message": "Question deleted Successfuly"
+}
+```
+-If this request fails (most times it's because the question wasn't found), it return an error report.
+
+```json
+{
+  "success": "False",
+  "message": "Not Found, Item not found",
+  "error": 404
+}
+```
+
+`POST '/questions'`
+
+- This endpoint creates a new question and stores it into the questions table in the database.
+- payloads: {
+  'question': 'What is the name of....',
+  'answer': 'Random Answer',
+  'difficulty': 4,
+  'category': 2
+} 
+- Request Argument: None
+- Returns: An object with the keys; `success`, `message`, `created`, `question`
+
+```json
+{
+  "success": "True",
+  "message": "Questions fetched successfully",
+  "created": 4, "(question Id)"
+  "question": {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+       
+}
+```
+
+-If this request fails, it return an error report.
+
+```json
+{
+  "success": "False",
+  "message": "Cannot proccess, please check your payload (request)",
+  "error": 422
+}
+```
+
+`GET '/categories/2/questions'`
+
+- This endpoint gets questions based on categories.
+- Request Argument: category id (number)
+- Returns: An object with the keys; `success`, `message`, `questions`, `total_questions`, `current_category`
+
+```json
+{
+  "success": "True",
+  "message": "Questions fetched successfully",
+  "questions": [
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    },
+  ],
+  "total_questions": 4,
+  "current_category": "History",
+}
+```
+
+`POST '/questions'`
+
+- This api endpoint fetches searched questions, its so similar to the endpoint for adding new question just that the payload for this is an object with one property (searchTerm). The search term doesn't have to be exactly what's in database, the database fetches everything that has the search term in it.
+- payload: {
+  "searchTerm": 'question"
+}
+- Request Argument: None
+- Returns: An object with the keys; `success`, `questions`, `questions_count`, `curerent_category`, `message`
+
+```json
+{
+  "success": "True",
+  "message": "Questions fetched successfully",
+  "questions": [
+      {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+    {
+      "answer": "Maya Angelou", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 5, 
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }, 
+    {
+      "answer": "Edward Scissorhands", 
+      "category": 5, 
+      "difficulty": 3, 
+      "id": 6, 
+      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    }, 
+    {
+      "answer": "Muhammad Ali", 
+      "category": 4, 
+      "difficulty": 1, 
+      "id": 9, 
+      "question": "What boxer's original name is Cassius Clay?"
+    }, 
+    {
+      "answer": "Brazil", 
+      "category": 6, 
+      "difficulty": 3, 
+      "id": 10, 
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    }
+  ],
+  "questions_count": 20,
+  "current_category": "Science"
+}
+```
+
+`POST '/quizzes'`
+
+- This endpoint fetches quizzes for the player to answer and get answers at the end. This endpoint fetches random questions from the database on users request.
+- payload: {
+  "previous_question": [12, 30, 1, 20],
+  "category": 2
+}
+- Request Argument: None
+- Returns: An object with the keys; `success`, `question`
+
+```json
+{
+  "success": "True",
+  "question": {
+    {
+      "answer": "Brazil", 
+      "category": 6, 
+      "difficulty": 3, 
+      "id": 10, 
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    }
+  }
 }
 ```
 

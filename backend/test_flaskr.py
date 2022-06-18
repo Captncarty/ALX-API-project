@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
@@ -14,8 +16,8 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
-        self.database_path = f'postgresql://postgres:abc@127.0.0.1:5432/{self.database_name}'
+        # self.database_name = "trivia_test"
+        self.database_path = os.environ.get('TEST_DATABASE_PATH')
         setup_db(self.app, self.database_path)
 
         self.new_question = {
@@ -23,6 +25,9 @@ class TriviaTestCase(unittest.TestCase):
             "category": 1, 
             "difficulty": 2,  
             "question": "What is the first planet?"
+        }
+        self.searchTerm = {
+            "searchTerm": "What"
         }
 
         # binds the app to the current context
@@ -61,7 +66,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['qusetions'])
+        self.assertTrue(data['questions'])
         self.assertTrue(data['questions_count'])
         self.assertTrue(data['current_category'])
         self.assertEqual(data['message'], 'Questions fetched successfully')
@@ -72,11 +77,11 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
-        self.assertEqual(data['message'], 'Bad request, please check your request')
+        self.assertEqual(data['message'], 'Not Found, Item not found')
         self.assertTrue(data['error'])
 
     def test_question_delete_success(self):
-        res = self.client().delete('/questions/36')
+        res = self.client().delete('/questions/22')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -85,6 +90,14 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_question_delete_error(self):
         res = self.client().delete('/questions/10000')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertTrue(data['message'])
+
+    def test_question_delete_error(self):
+        res = self.client().delete('/questions')
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 405)
@@ -125,7 +138,17 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['message'])
 
     def test_fetch_questions_by_category_success(self):
-        res = self.client().post('/categories/1/questions')
+        res = self.client().post('/categories/2/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(data['success'], True)
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['questions'])
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+
+    def test_fetch_searched_questions(self):
+        res = self.client().post('/questions', json=self.searchTerm)
         data = json.loads(res.data)
 
         self.assertEqual(data['success'], True)
